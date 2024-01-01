@@ -60,11 +60,12 @@ using TestItemRunner
     push!(A, 6)
     @test A == [1, 4, 5, 3, "yyy", "zz", 6]
 
-    B = @set A[3] = 6
+    B = @set A[3] = 6.
     B = @set B[4] = :xxx
     B = @insert last(B) = 1+2im
     B = @delete B[1]
-    @test B::UnionArray == [4, 6, :xxx, "yyy", "zz", 6, 1+2im]
+    @test B == [4, 6., :xxx, "yyy", "zz", 6, 1+2im]
+    @test B isa UnionArray{Union{Int,Float64,Complex{Int},String,Symbol}}  # should we promote Int and Float to Complex?
     @test A == [1, 4, 5, 3, "yyy", "zz", 6]
 end
 

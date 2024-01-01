@@ -153,8 +153,9 @@ function Accessors.setindex(ua::UnionArray, v, I::Int...)
         return setindex!(copy(ua), v, I...)
     else
         # remove old value, shift indices by one
-        popat!(ua.parts[partix], ix_in_part)
-        map!(ua.ix_to_partix, ua.ix_to_partix) do (p, i)
+        parts = ua.parts
+        parts = @delete parts[partix][ix_in_part]
+        ix_to_partix = map(ua.ix_to_partix) do (p, i)
             if p == partix && i > ix_in_part
                 (p, i-1)
             else
@@ -162,11 +163,8 @@ function Accessors.setindex(ua::UnionArray, v, I::Int...)
             end
         end
 
-        # create new part with the new value
-        parts = (ua.parts..., [v])
-
-        # update the index
-        ix_to_partix = ua.ix_to_partix
+        # create new part with the new value, update its index
+        parts = (parts..., [v])
         ix_to_partix = @set ix_to_partix[I...] = (lastindex(parts), lastindex(last(parts)))
 
         return UnionArray(parts, ix_to_partix)
