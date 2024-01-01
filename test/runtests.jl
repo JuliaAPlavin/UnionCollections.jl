@@ -38,6 +38,26 @@ using TestItemRunner
     @test fa::UnionVector == [2, 3, "yyy"]
     @test (@inferred findall(pred, A)) == [2, 4, 5]
     @test (@inferred Nothing findfirst(pred, A)) == 2
+
+
+    A = unioncollection([1, 2, "xx", 3, "yyy"])
+    resize!(A, 3)
+    @test A == [1, 2, "xx"]
+    @test sum(length, A.parts) == 3
+
+    A = unioncollection([1, 2, "xx", 3, "yyy"])
+    resize!(A, 7)
+    @test A[1:5] == [1, 2, "xx", 3, "yyy"]
+    @test typeof.(A[6:7]) == [Int, Int]
+    @test sum(length, A.parts) == 7
+
+    A = unioncollection([1, 2, "xx", 3, "yyy"])
+    @test A[1] == 1
+    A[2] = 4
+    A[3] = 5
+    push!(A, "zz")
+    push!(A, 6)
+    @test A == [1, 4, 5, 3, "yyy", "zz", 6]
 end
 
 @testitem "nd array" begin

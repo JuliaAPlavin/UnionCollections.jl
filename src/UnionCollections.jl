@@ -64,6 +64,50 @@ Base.@propagate_inbounds Base.view(ua::UnionArray, I...) =
         @view ua.ix_to_partix[I...]
     )
 
+Base.@propagate_inbounds function Base.setindex!(ua::UnionArray, v, I::Int...)
+    partix, ix_in_part = ua.ix_to_partix[I...]
+    if v isa eltype(ua.parts[partix])
+        ua.parts[partix][ix_in_part] = v
+    else
+        # remove old value, shift indices by one
+        popat!(ua.parts[partix], ix_in_part)
+        map!(ua.ix_to_partix, ua.ix_to_partix) do (p, i)
+            if p == partix && i > ix_in_part
+                (p, i-1)
+            else
+                (p, i)
+            end
+        end
+
+        # find new part
+        partix = findfirst(p -> v isa eltype(p), ua.parts)
+        @assert partix != nothing "No part with eltype $(typeof(v)) found"
+
+        # insert new value and update the index
+        push!(ua.parts[partix], v)
+        ua.ix_to_partix[I...] = (partix, lastindex(ua.parts[partix]))
+    end
+    return ua
+end
+
+function Base.resize!(ua::UnionVector, newlen::Integer)
+    if newlen < length(ua)
+        for (partix, ix_in_part) in @view ua.ix_to_partix[end:-1:newlen+1]
+            @assert ix_in_part == lastindex(ua.parts[partix])
+            pop!(ua.parts[partix])
+        end
+        resize!(ua.ix_to_partix, newlen)
+    elseif newlen > length(ua)
+        len₊ = newlen - length(ua)
+        part = first(ua.parts)
+        for i in 1:len₊
+            push!(ua.ix_to_partix, (1, lastindex(part) + i))
+        end
+        resize!(part, length(part) + len₊)
+    end
+    return ua
+end
+
 Base.size(ua::UnionArray) = size(ua.ix_to_partix)
 Base.map(f, ua::UnionArray) = @modify(ua.parts) do ps
     map(p -> map(f, p), ps)
