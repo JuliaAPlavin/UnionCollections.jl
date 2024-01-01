@@ -108,6 +108,12 @@ end
     @test D == dictionary([:a => 4, :c => "yy", :d => "zz"])
 end
 
+@testitem "any_element" begin
+    using UnionCollections: any_element
+
+    any_element([1, 2, 3]) == 1
+end
+
 
 @testitem "_" begin
     import Aqua

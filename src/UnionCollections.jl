@@ -143,6 +143,7 @@ Base.similar(ua::UnionArray) = UnionArray(
 Base.similar(ua::UnionArray{T}, ::Type{T}) where {T} = similar(ua)
 
 any_element(ua::UnionArray) = first(first(ua.parts))
+any_element(x) = first(x)  # fallback
 
 
 function Accessors.setindex(ua::UnionArray, v, I::Int...)
