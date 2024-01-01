@@ -22,16 +22,10 @@ Accessors.set(dict::UnionDictionary, ::typeof(_values), values) = UnionDictionar
 Dictionaries.tokenized(dict::UnionDictionary) = _values(dict)
 
 Dictionaries.istokenassigned(dict::UnionDictionary, (_slot, index)) = isassigned(_values(dict), index)
-Dictionaries.istokenassigned(dict::UnionDictionary, index::Int) = isassigned(_values(dict), index)
 Dictionaries.gettokenvalue(dict::UnionDictionary, (_slot, index)) = _values(dict)[index]
-Dictionaries.gettokenvalue(dict::UnionDictionary, index::Int) = _values(dict)[index]
 
 Dictionaries.issettable(::UnionDictionary) = true
 Base.@propagate_inbounds function Dictionaries.settokenvalue!(dict::UnionDictionary{<:Any, T}, (_slot, index), value::T) where {T}
-    _values(dict)[index] = value
-    return dict
-end
-Base.@propagate_inbounds function Dictionaries.settokenvalue!(dict::UnionDictionary{<:Any, T}, index::Int, value::T) where {T}
     _values(dict)[index] = value
     return dict
 end
