@@ -69,19 +69,20 @@ Base.@propagate_inbounds function Base.setindex!(ua::UnionArray, v, I::Int...)
     if v isa eltype(ua.parts[partix])
         ua.parts[partix][ix_in_part] = v
     else
+        old_partix = partix
+        # find new part
+        partix = findfirst(p -> v isa eltype(p), ua.parts)
+        @assert partix != nothing "No part with eltype $(typeof(v)) found"
+
         # remove old value, shift indices by one
-        popat!(ua.parts[partix], ix_in_part)
+        popat!(ua.parts[old_partix], ix_in_part)
         map!(ua.ix_to_partix, ua.ix_to_partix) do (p, i)
-            if p == partix && i > ix_in_part
+            if p == old_partix && i > ix_in_part
                 (p, i-1)
             else
                 (p, i)
             end
         end
-
-        # find new part
-        partix = findfirst(p -> v isa eltype(p), ua.parts)
-        @assert partix != nothing "No part with eltype $(typeof(v)) found"
 
         # insert new value and update the index
         push!(ua.parts[partix], v)
@@ -142,5 +143,52 @@ Base.similar(ua::UnionArray) = UnionArray(
 Base.similar(ua::UnionArray{T}, ::Type{T}) where {T} = similar(ua)
 
 any_element(ua::UnionArray) = first(first(ua.parts))
+
+
+function Accessors.setindex(ua::UnionArray, v, I::Int...)
+    partix, ix_in_part = ua.ix_to_partix[I...]
+    if v isa eltype(ua.parts[partix])
+        return setindex!(copy(ua), v, I...)
+    elseif any(p -> v isa eltype(p), ua.parts)
+        return setindex!(copy(ua), v, I...)
+    else
+        # remove old value, shift indices by one
+        popat!(ua.parts[partix], ix_in_part)
+        map!(ua.ix_to_partix, ua.ix_to_partix) do (p, i)
+            if p == partix && i > ix_in_part
+                (p, i-1)
+            else
+                (p, i)
+            end
+        end
+
+        # create new part with the new value
+        parts = (ua.parts..., [v])
+
+        # update the index
+        ix_to_partix = ua.ix_to_partix
+        ix_to_partix = @set ix_to_partix[I...] = (lastindex(parts), lastindex(last(parts)))
+
+        return UnionArray(parts, ix_to_partix)
+    end
+end
+
+function Accessors.insert(ua::UnionVector, l::IndexLens, v)
+    I = only(l.indices)
+    if any(p -> v isa eltype(p), ua.parts)
+        return insert!(copy(ua), I, v)
+    else
+        # create new part with the new value
+        parts = (ua.parts..., [v])
+
+        # set its index
+        ix_to_partix = ua.ix_to_partix
+        ix_to_partix = @insert ix_to_partix[I] = (lastindex(parts), lastindex(last(parts)))
+
+        return UnionArray(parts, ix_to_partix)
+    end
+end
+
+Accessors.delete(obj::UnionVector, l::IndexLens) = deleteat!(copy(obj), only(l.indices))
 
 end

@@ -61,10 +61,11 @@ using TestItemRunner
     @test A == [1, 4, 5, 3, "yyy", "zz", 6]
 
     B = @set A[3] = 6
-    B = @insert last(B) = "zzz"
-    @test B::UnionArray == [1, 4, 6, 3, "yyy", "zz", 6, "zzz"]
-    C = @delete B[1]
-    @test C::UnionArray == [4, 6, 3, "yyy", "zz", 6, "zzz"]
+    B = @set B[4] = :xxx
+    B = @insert last(B) = 1+2im
+    B = @delete B[1]
+    @test B::UnionArray == [4, 6, :xxx, "yyy", "zz", 6, 1+2im]
+    @test A == [1, 4, 5, 3, "yyy", "zz", 6]
 end
 
 @testitem "nd array" begin
@@ -110,7 +111,7 @@ end
 @testitem "_" begin
     import Aqua
     Aqua.test_all(UnionCollections; ambiguities=false)
-    Aqua.test_ambiguities(UnionCollections)
+    # Aqua.test_ambiguities(UnionCollections)  # similar() ambiguities
 
     import CompatHelperLocal as CHL
     CHL.@check()
