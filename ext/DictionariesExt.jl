@@ -4,6 +4,7 @@ using Dictionaries
 import UnionCollections: any_element, unioncollection
 using UnionCollections
 using UnionCollections.Accessors
+using UnionCollections.Accessors.ConstructionBase
 
 struct UnionDictionary{I,T,VT<:UnionVector{T}} <: AbstractDictionary{I,T}
     indices::Indices{I}
@@ -28,5 +29,12 @@ Dictionaries.gettokenvalue(dict::UnionDictionary, index::Int) = _values(dict)[in
 Base.map(f, d::UnionDictionary) = @modify(vs -> map(f, vs), _values(d))
 
 any_element(d::UnionDictionary) = any_element(_values(d))
+
+
+# see the PR for all AbstractDictionaries:
+# https://github.com/andyferris/Dictionaries.jl/pull/43
+Base.propertynames(d::UnionDictionary) = keys(d)
+Base.@propagate_inbounds Base.getproperty(d::D, s::Symbol) where {D<:UnionDictionary} = d[s]
+ConstructionBase.setproperties(obj::UnionDictionary, patch::NamedTuple) = merge(obj, Dictionary(keys(patch), values(patch)))
 
 end

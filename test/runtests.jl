@@ -54,6 +54,7 @@ end
     using Dictionaries
     using UnionCollections: any_element
     using FlexiMaps
+    using UnionCollections.Accessors
 
     const UnionDictionary = Base.get_extension(UnionCollections, :DictionariesExt).UnionDictionary
 
@@ -66,6 +67,10 @@ end
 
     @test (@inferred map(length, D)) == dictionary([:a => 1, :b => 2, :c => 1])
     @test (@inferred filter(x -> true, D)) == D
+
+    @test D.a == 1
+    @test (@set D.a = 5) == dictionary([:a => 5, :b => "xx", :c => 3])
+    @test_broken Accessors.getproperties(D) == (a=1, b="xx", c=3)
 end
 
 
