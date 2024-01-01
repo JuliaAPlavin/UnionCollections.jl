@@ -1,0 +1,6 @@
+name = "UnionCollections"
+uuid = "ea2a18ed-132b-4398-a457-2ce4804e5c00"
+authors = ["Alexander Plavin <alexander@plav.in>"]
+version = "0.1.0"
+
+[deps]
