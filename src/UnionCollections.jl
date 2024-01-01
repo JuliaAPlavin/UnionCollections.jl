@@ -135,6 +135,20 @@ Base.map(f, ua::UnionArray) = @modify(ua.parts) do ps
     map(p -> map(f, p), ps)
 end
 
+# see AccessorsExtra for multiarg modify()
+function Accessors.modify(f, ua::UnionArray, ::Elements, B::AbstractArray)
+    Bis = map(p -> similar(p, keytype(ua)), ua.parts)
+    for (ix, (partix, i)) in pairs(ua.ix_to_partix)
+        Bis[partix][i] = ix
+    end
+    @modify(ua.parts) do parts
+        modify(parts, Elements(), Bis) do part, Bi
+            Bp = view(B, Bi)
+            modify(f, part, Elements(), Bp)
+        end
+    end
+end
+
 Base.similar(ua::UnionArray) = UnionArray(
     map(similar, ua.parts),
     copy(ua.ix_to_partix)
