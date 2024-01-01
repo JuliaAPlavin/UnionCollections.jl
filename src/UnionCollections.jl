@@ -135,12 +135,25 @@ Base.map(f, ua::UnionArray) = @modify(ua.parts) do ps
     map(p -> map(f, p), ps)
 end
 
-Base.similar(ua::UnionArray, args...) = error("similar() deliberately not implemented")
 Base.similar(ua::UnionArray) = UnionArray(
     map(similar, ua.parts),
     copy(ua.ix_to_partix)
 )
 Base.similar(ua::UnionArray{T}, ::Type{T}) where {T} = similar(ua)
+function Base.similar(ua::UnionArray, dims::Integer...)
+    dims == (0,) || error("general similar() deliberately not implemented")
+    return UnionArray(
+        map(empty, ua.parts),
+        empty(ua.ix_to_partix)
+    )
+end
+function Base.similar(ua::UnionArray, ::Type{T}, dims::Integer...) where {T}
+    (T == eltype(ua) && dims == (0,)) || error("general similar() deliberately not implemented")
+    return UnionArray(
+        map(empty, ua.parts),
+        empty(ua.ix_to_partix)
+    )
+end
 
 any_element(ua::UnionArray) = first(first(ua.parts))
 any_element(x) = first(x)  # fallback

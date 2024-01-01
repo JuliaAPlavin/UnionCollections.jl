@@ -94,8 +94,10 @@ end
 
     @test UnionDictionary(Dict(:a => 1, :b => "xx", :c => 3)) == D
 
-    @test (@inferred map(length, D)) == dictionary([:a => 1, :b => 2, :c => 1])
-    @test (@inferred filter(x -> true, D)) == D
+    @test (@inferred map(length, D))::UnionDictionary == dictionary([:a => 1, :b => 2, :c => 1])
+    @test (@inferred map(length ∘ last, pairs(D))) == dictionary([:a => 1, :b => 2, :c => 1])
+    @test_broken (@inferred map(length ∘ last, pairs(D)))::UnionDictionary == dictionary([:a => 1, :b => 2, :c => 1])
+    @test (@inferred filter(x -> true, D))::UnionDictionary == D
 
     @test D.a == 1
     @test (@set D.a = 5) == dictionary([:a => 5, :b => "xx", :c => 3])

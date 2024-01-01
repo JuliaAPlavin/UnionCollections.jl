@@ -42,6 +42,10 @@ end
 
 Base.map(f, d::UnionDictionary) = @modify(vs -> map(f, vs), _values(d))
 
+Base.empty(d::UnionDictionary) = similar(d, eltype(d), empty(keys(d)))
+Base.similar(d::UnionDictionary, ::Type{T}, indices) where {T} = UnionDictionary(indices, similar(_values(d), T, length(indices)))
+Base.similar(d::UnionDictionary, ::Type{T}) where {T} = UnionDictionary(copy(keys(d)), similar(_values(d), T))
+
 any_element(d::UnionDictionary) = any_element(_values(d))
 
 # see the PR for all AbstractDictionaries:
