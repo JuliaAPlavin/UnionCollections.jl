@@ -5,6 +5,7 @@ using TestItemRunner
 
 @testitem "1d vector" begin
     using UnionCollections: any_element
+    using UnionCollections.Accessors
     using FlexiMaps
 
     A = unioncollection([1, 2, "xx", 3, "yyy"])
@@ -58,6 +59,12 @@ using TestItemRunner
     push!(A, "zz")
     push!(A, 6)
     @test A == [1, 4, 5, 3, "yyy", "zz", 6]
+
+    B = @set A[3] = 6
+    B = @insert last(B) = "zzz"
+    @test B::UnionArray == [1, 4, 6, 3, "yyy", "zz", 6, "zzz"]
+    C = @delete B[1]
+    @test C::UnionArray == [4, 6, 3, "yyy", "zz", 6, "zzz"]
 end
 
 @testitem "nd array" begin
@@ -91,6 +98,12 @@ end
     @test D.a == 1
     @test (@set D.a = 5) == dictionary([:a => 5, :b => "xx", :c => 3])
     @test_broken Accessors.getproperties(D) == (a=1, b="xx", c=3)
+
+    D[:a] = 4
+    D[:c] = "yy"
+    delete!(D, :b)
+    insert!(D, :d, "zz")
+    @test D == dictionary([:a => 4, :c => "yy", :d => "zz"])
 end
 
 

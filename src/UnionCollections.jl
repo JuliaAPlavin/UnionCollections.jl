@@ -108,10 +108,38 @@ function Base.resize!(ua::UnionVector, newlen::Integer)
     return ua
 end
 
+function Base.insert!(ua::UnionVector, I::Int, v)
+    partix = findfirst(p -> v isa eltype(p), ua.parts)
+    @assert partix != nothing "No part with eltype $(typeof(v)) found"
+    push!(ua.parts[partix], v)
+    insert!(ua.ix_to_partix, I, (partix, lastindex(ua.parts[partix])))
+    return ua
+end
+function Base.deleteat!(ua::UnionVector, I::Int)
+    partix, ix_in_part = ua.ix_to_partix[I]
+    popat!(ua.parts[partix], ix_in_part)
+    map!(ua.ix_to_partix, ua.ix_to_partix) do (p, i)
+        if p == partix && i > ix_in_part
+            (p, i-1)
+        else
+            (p, i)
+        end
+    end
+    deleteat!(ua.ix_to_partix, I)
+    return ua
+end
+
 Base.size(ua::UnionArray) = size(ua.ix_to_partix)
 Base.map(f, ua::UnionArray) = @modify(ua.parts) do ps
     map(p -> map(f, p), ps)
 end
+
+Base.similar(ua::UnionArray, args...) = error("similar() deliberately not implemented")
+Base.similar(ua::UnionArray) = UnionArray(
+    map(similar, ua.parts),
+    copy(ua.ix_to_partix)
+)
+Base.similar(ua::UnionArray{T}, ::Type{T}) where {T} = similar(ua)
 
 any_element(ua::UnionArray) = first(first(ua.parts))
 

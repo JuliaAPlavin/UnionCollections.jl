@@ -26,10 +26,29 @@ Dictionaries.istokenassigned(dict::UnionDictionary, index::Int) = isassigned(_va
 Dictionaries.gettokenvalue(dict::UnionDictionary, (_slot, index)) = _values(dict)[index]
 Dictionaries.gettokenvalue(dict::UnionDictionary, index::Int) = _values(dict)[index]
 
+Dictionaries.issettable(::UnionDictionary) = true
+Base.@propagate_inbounds function Dictionaries.settokenvalue!(dict::UnionDictionary{<:Any, T}, (_slot, index), value::T) where {T}
+    _values(dict)[index] = value
+    return dict
+end
+Base.@propagate_inbounds function Dictionaries.settokenvalue!(dict::UnionDictionary{<:Any, T}, index::Int, value::T) where {T}
+    _values(dict)[index] = value
+    return dict
+end
+
+Dictionaries.isinsertable(::UnionDictionary) = true
+function Dictionaries.gettoken!(dict::UnionDictionary{I}, i::I) where {I}
+    (hadtoken, (slot, index)) = gettoken!(keys(dict), i, (_values(dict),))
+    return (hadtoken, (slot, index))
+end
+function Dictionaries.deletetoken!(dict::UnionDictionary{I, T}, (slot, index)) where {I, T}
+    deletetoken!(keys(dict), (slot, index), (_values(dict),))
+    return dict
+end
+
 Base.map(f, d::UnionDictionary) = @modify(vs -> map(f, vs), _values(d))
 
 any_element(d::UnionDictionary) = any_element(_values(d))
-
 
 # see the PR for all AbstractDictionaries:
 # https://github.com/andyferris/Dictionaries.jl/pull/43
