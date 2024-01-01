@@ -46,7 +46,7 @@ any_element(d::UnionDictionary) = any_element(_values(d))
 
 # see the PR for all AbstractDictionaries:
 # https://github.com/andyferris/Dictionaries.jl/pull/43
-Base.propertynames(d::UnionDictionary) = keys(d)
+Base.propertynames(d::UnionDictionary) = Dictionaries._values(keys(d))
 Base.@propagate_inbounds Base.getproperty(d::D, s::Symbol) where {D<:UnionDictionary} = d[s]
 ConstructionBase.setproperties(obj::UnionDictionary, patch::NamedTuple) = merge(obj, Dictionary(keys(patch), values(patch)))
 

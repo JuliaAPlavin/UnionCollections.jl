@@ -99,6 +99,7 @@ end
 
     @test D.a == 1
     @test (@set D.a = 5) == dictionary([:a => 5, :b => "xx", :c => 3])
+    @test propertynames(D) == [:a, :b, :c]
     @test Accessors.getproperties(D) == (a=1, b="xx", c=3)
 
     D[:a] = 4
