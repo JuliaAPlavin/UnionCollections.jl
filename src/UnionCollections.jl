@@ -2,7 +2,7 @@ module UnionCollections
 
 using Accessors
 
-export UnionArray, UnionVector, unioncollection
+export UnionArray, UnionVector, unioncollection, unionarray
 
 
 struct UnionArray{T,N,PS<:Tuple} <: AbstractArray{T,N}
@@ -16,9 +16,22 @@ UnionArray{T}(parts, ix_to_partix::AbstractArray{<:Any,N}) where {T,N} = UnionAr
 
 Base.IndexStyle(::Type{<:UnionArray}) = IndexStyle(Array)  # of ix_to_partix
 
-function unioncollection(vals::AbstractArray)
+unioncollection(vals::AbstractArray) = unionarray(vals)
+
+function unionarray(vals::AbstractArray)
     types = unique(map(typeof, vals)) |> Tuple
     parts = map(T -> similar(vals, T, 0), types)
+    ix_to_partix = map(vals) do v
+        partix = findfirst(==(typeof(v)), types)
+        push!(parts[partix], v)
+        (partix, lastindex(parts[partix]))
+    end
+    return UnionArray(parts, ix_to_partix)
+end
+
+function unionarray(vals)
+    types = unique(map(typeof, vals)) |> Tuple
+    parts = map(T -> T[], types)
     ix_to_partix = map(vals) do v
         partix = findfirst(==(typeof(v)), types)
         push!(parts[partix], v)

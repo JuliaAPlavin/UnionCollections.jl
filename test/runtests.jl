@@ -55,10 +55,14 @@ end
     using UnionCollections: any_element
     using FlexiMaps
 
+    const UnionDictionary = Base.get_extension(UnionCollections, :DictionariesExt).UnionDictionary
+
     D = unioncollection(dictionary([:a => 1, :b => "xx", :c => 3]))
     @test D == dictionary([:a => 1, :b => "xx", :c => 3])
     @test eltype(D) == Union{Int, String}
     @test (@inferred any_element(D)) == 1
+
+    @test UnionDictionary(Dict(:a => 1, :b => "xx", :c => 3)) == D
 
     @test (@inferred map(length, D)) == dictionary([:a => 1, :b => 2, :c => 1])
     @test (@inferred filter(x -> true, D)) == D

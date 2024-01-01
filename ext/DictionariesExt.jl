@@ -10,9 +10,10 @@ struct UnionDictionary{I,T,VT<:UnionVector{T}} <: AbstractDictionary{I,T}
     values::VT
 end
 
-UnionDictionary(indices, values) = UnionDictionary(Indices(indices), unioncollection(values))
+UnionDictionary(indices, values) = UnionDictionary(Indices(indices), unionarray(values))
+UnionDictionary(dict) = UnionDictionary(keys(dict), values(dict))
 
-unioncollection(dict::AbstractDictionary) = UnionDictionary(keys(dict), _values(dict))
+unioncollection(dict::AbstractDictionary) = UnionDictionary(dict)
 
 Base.keys(dict::UnionDictionary) = getfield(dict, :indices)
 _values(dict) = getfield(dict, :values)
